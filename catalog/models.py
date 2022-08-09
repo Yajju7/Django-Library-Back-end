@@ -1,4 +1,5 @@
 
+from operator import truediv
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -17,6 +18,7 @@ class Book(models.Model):
     isbn = models.CharField('ISBN',max_length=13,unique=True)
     genre = models.ManyToManyField(Genre)
     language = models.ForeignKey('language', on_delete=models.SET_NULL,null=True)
+    quantity = models.IntegerField()
     
     def __str__(self):
         return f"{self.title} , {self.author}"
@@ -44,25 +46,25 @@ class Author(models.Model):
         return f"{self.first_name}  {self.last_name}"
     
 import uuid
-
 class bookInstance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     book = models.ForeignKey('Book',on_delete=models.RESTRICT,null=True)
+    available_books = models.IntegerField(default=0)
     imprint = models.CharField(max_length=200)
-    due_back = models.DateField(null=True, blank=True)
-    borower = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) 
-    
     LOAN_STATUS = (
         ('m','maintainence'),
-        ('o', 'on_loan'),
         ('a', 'available'),
         ('r', 'reserved'),
-    )   
-    
+    )
+    issued = models.BooleanField(default=False)
+    issued_at = models.DateTimeField(auto_now=False, null=True, blank=True)
+    returned = models.BooleanField(default=False)
+    returned_date = models.DateTimeField(auto_now=False, null=True, blank=True)
     status = models.CharField(max_length=1, choices=LOAN_STATUS, blank=True, default='m' )
+    
     
     class Meta:
         ordering = ['due_back']
-        
     def __str__(self):
         return f"{self.id} , {self.book.title}"
+    
