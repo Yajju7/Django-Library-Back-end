@@ -1,5 +1,7 @@
 
+from django.utils import timezone
 from operator import truediv
+import datetime
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -9,6 +11,8 @@ class Genre(models.Model):
     
     def __str__(self):
        return self.name
+   
+
 
 
 class Book(models.Model):
@@ -18,7 +22,7 @@ class Book(models.Model):
     isbn = models.CharField('ISBN',max_length=13,unique=True)
     genre = models.ManyToManyField(Genre)
     language = models.ForeignKey('language', on_delete=models.SET_NULL,null=True)
-    quantity = models.IntegerField()
+    quantity = models.SmallIntegerField(default=1)
     
     def __str__(self):
         return f"{self.title} , {self.author}"
@@ -49,22 +53,44 @@ import uuid
 class bookInstance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     book = models.ForeignKey('Book',on_delete=models.RESTRICT,null=True)
-    available_books = models.IntegerField(default=0)
     imprint = models.CharField(max_length=200)
+    borrower = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     LOAN_STATUS = (
-        ('m','maintainence'),
         ('a', 'available'),
         ('r', 'reserved'),
     )
     issued = models.BooleanField(default=False)
-    issued_at = models.DateTimeField(auto_now=False, null=True, blank=True)
+    issued_at = models.DateTimeField(auto_now_add=False, auto_now=False, null=True, blank=True)
     returned = models.BooleanField(default=False)
-    returned_date = models.DateTimeField(auto_now=False, null=True, blank=True)
+    return_date = models.DateTimeField(auto_now=False, null=True, blank=True)
     status = models.CharField(max_length=1, choices=LOAN_STATUS, blank=True, default='m' )
+    quantity = models.IntegerField(default=1)
     
     
     class Meta:
-        ordering = ['due_back']
+        ordering = ['issued_at']
     def __str__(self):
         return f"{self.id} , {self.book.title}"
+    
+    def save(self, *args, **kwargs):
+        self.issued_at = timezone.now()
+        # import pdb; pdb.set_trace()
+        if self.issued:
+           self.return_date = self.issued_at + datetime.timedelta(days=15)
+           super(bookInstance, self).save(*args, **kwargs)
+    
+    def days_no(self):
+        if self.issued:
+            y,m,d = str(timezone.now()).split('-')
+            today = datetime.date(int(y),int(m),int(d))
+            y2,m2,d2 = str(self.return_date()).split('-')
+            lastdate = datetime.date(int(y2),int(m2),int(d2))
+            print(lastdate-today,lastdate>today)
+            if lastdate > today:
+                return f" Not Returned {str(lastdate-today).split(','[0])}"
+            else:
+                self.returned = True
+                return f"Returned"
+        else:
+            return "" 
     
