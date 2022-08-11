@@ -59,7 +59,7 @@ class bookInstance(models.Model):
         ('a', 'available'),
         ('r', 'reserved'),
     )
-    issued = models.BooleanField(default=False)
+    issued = models.BooleanField(default=True)
     issued_at = models.DateTimeField(auto_now_add=False, auto_now=False, null=True, blank=True)
     returned = models.BooleanField(default=False)
     return_date = models.DateTimeField(auto_now=False, null=True, blank=True)
@@ -73,14 +73,14 @@ class bookInstance(models.Model):
         return f"{self.id} , {self.book.title}"
     
     def save(self, *args, **kwargs):
-        self.issued_at = timezone.now()
+        # self.issued_at = timezone.now()
         # import pdb; pdb.set_trace()
         if self.issued:
            self.return_date = self.issued_at + datetime.timedelta(days=15)
            super(bookInstance, self).save(*args, **kwargs)
     
     def days_no(self):
-        if self.issued:
+        if self.issued and not self.issued_at:
             y,m,d = str(timezone.now()).split('-')
             today = datetime.date(int(y),int(m),int(d))
             y2,m2,d2 = str(self.return_date()).split('-')
