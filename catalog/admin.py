@@ -4,10 +4,13 @@ from catalog.models import Book, bookInstance,Author,Genre, language
 from django.utils import timezone
 import datetime
 # Register your models here.
-admin.site.register(Book)
 admin.site.register(Author)
 admin.site.register(Genre)
 admin.site.register(language)
+
+@admin.register(Book)
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title','author','language','quantity',)
 
 
 
@@ -19,17 +22,6 @@ class instanceAdmin(admin.ModelAdmin):
     readonly_fields = ['return_date']
  
     def days_remaining(self,obj):
-        # if obj.issued:
-        #     if obj.returned == False:
-        #         # import pdb; pdb.set_trace()
-        #         now =timezone.now()
-        #         rd = obj.return_date
-        #         if now<rd:
-        #             return "Due-date remaining"
-        #         else:
-        #             return "Return date Exceeded"
-            
-        # import pdb; pdb.set_trace()
         if obj.issued:    
             if obj.returned:
                 return 'returned'
@@ -40,6 +32,21 @@ class instanceAdmin(admin.ModelAdmin):
                 lastdate = datetime.date(int(y2),int(m2),int(d2))
                 if lastdate>today :
                     return f"{(lastdate-today).days} Not Returned Yet!!"
+                elif lastdate == today:
+                    return "Should be returned by today"
                 return f"{(today-lastdate).days} days passed!! still not returned"
             return ""
         return "not issued"
+
+
+
+        # if obj.issued:
+        #     if obj.returned == False:
+        #         # import pdb; pdb.set_trace()
+        #         now =timezone.now()
+        #         rd = obj.return_date
+        #         if now<rd:
+        #             return "Due-date remaining"
+        #         else:
+        #             return "Return date Exceeded"
+        # import pdb; pdb.set_trace()

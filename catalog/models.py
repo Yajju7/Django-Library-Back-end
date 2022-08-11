@@ -5,6 +5,7 @@ import datetime
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.core.validators import MinLengthValidator
 # Create your models here.
 class Genre(models.Model):
     name = models.CharField(max_length=100)
@@ -19,7 +20,7 @@ class Book(models.Model):
     title = models.CharField(max_length=100)
     author = models.ForeignKey('Author', on_delete=models.SET_NULL, null=True)
     summary = models.TextField(max_length=600)
-    isbn = models.CharField('ISBN',max_length=13,unique=True)
+    isbn = models.CharField('ISBN',max_length=13,unique=True,validators=[MinLengthValidator(10)])
     genre = models.ManyToManyField(Genre)
     language = models.ForeignKey('language', on_delete=models.SET_NULL,null=True)
     quantity = models.SmallIntegerField(default=1)
@@ -68,7 +69,7 @@ class bookInstance(models.Model):
     
     
     class Meta:
-        ordering = ['issued_at']
+        ordering = ['-issued_at']
     def __str__(self):
         return f"{self.id} , {self.book.title}"
     
