@@ -5,6 +5,8 @@ from django.utils import timezone
 import datetime
 # Register your models here.
 admin.site.register(Author)
+
+
 admin.site.register(Genre)
 admin.site.register(language)
 
@@ -31,7 +33,7 @@ class instanceAdmin(admin.ModelAdmin):
                 y2,m2,d2 = str(obj.return_date.date()).split('-')
                 lastdate = datetime.date(int(y2),int(m2),int(d2))
                 if lastdate>today :
-                    return f"{(lastdate-today).days} Not Returned Yet!!"
+                    return f"{(lastdate-today).days} days remaining"
                 elif lastdate == today:
                     return "Should be returned by today"
                 return f"{(today-lastdate).days} days passed!! still not returned"
